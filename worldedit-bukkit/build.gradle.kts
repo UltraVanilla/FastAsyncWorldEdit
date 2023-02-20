@@ -105,6 +105,8 @@ dependencies {
     api(libs.parallelgzip) { isTransitive = false }
     compileOnly("net.kyori:adventure-api")
     compileOnlyApi("org.checkerframework:checker-qual")
+    implementation(libs.arkitektonika)
+    implementation(libs.http4j)
 
     // Tests
     testImplementation(libs.mockito)
@@ -180,6 +182,12 @@ tasks.named<ShadowJar>("shadowJar") {
         }
         relocate("org.anarres", "com.fastasyncworldedit.core.internal.io") {
             include(dependency("org.anarres:parallelgzip:1.0.5"))
+        }
+        relocate("com.intellectualsites.arkitektonika", "com.fastasyncworldedit.arkitektonika") {
+            include(dependency("com.intellectualsites.arkitektonika:Arkitektonika-Client:2.1.1"))
+        }
+        relocate("com.intellectualsites.http", "com.fastasyncworldedit.http") {
+            include(dependency("com.intellectualsites.http:HTTP4J:1.3"))
         }
     }
 }

@@ -660,7 +660,7 @@ public class Settings extends Config {
     public static class WEB {
 
         @Comment({"The web interface for clipboards", " - All schematics are anonymous and private", " - Downloads can be deleted by the user", " - Supports clipboard uploads, downloads and saves",})
-        public String URL = "https://schem.intellectualsites.com/fawe/";
+        public String URL = "https://api.schematic.cloud/";
 
         @Comment("The maximum amount of time in seconds the plugin can attempt to load images for.")
         public int MAX_IMAGE_LOAD_TIME = 5;

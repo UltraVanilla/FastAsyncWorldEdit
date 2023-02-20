@@ -57,6 +57,8 @@ dependencies {
     implementation(libs.antlr4Runtime)
     implementation(libs.jsonSimple) { isTransitive = false }
 
+    api(libs.arkitektonika)
+
     // Tests
     testRuntimeOnly(libs.log4jCore)
     testImplementation(libs.adventureNbt)

@@ -28,6 +28,9 @@ import com.fastasyncworldedit.core.extent.clipboard.io.schematic.MinecraftStruct
 import com.fastasyncworldedit.core.util.MainUtil;
 import com.google.common.base.Function;
 import com.google.common.collect.Multimap;
+import com.intellectualsites.arkitektonika.Arkitektonika;
+import com.intellectualsites.arkitektonika.Schematic;
+import com.intellectualsites.arkitektonika.SchematicKeys;
 import com.sk89q.worldedit.LocalConfiguration;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.WorldEdit;
@@ -69,6 +72,7 @@ import org.enginehub.piston.exception.StopExecutionException;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -90,6 +94,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.regex.Pattern;
 
 import static com.fastasyncworldedit.core.util.ReflectionUtils.as;
@@ -333,12 +338,20 @@ public class SchematicCommands {
                     actor.print(Caption.of("fawe.error.no-perm", "worldedit.schematic.load.web"));
                     return;
                 }
-                UUID uuid = UUID.fromString(filename.substring(4));
-                URL webUrl = new URL(Settings.settings().WEB.URL);
+                String id = filename.substring(4);
+
+                String arkUrl = Settings.settings().WEB.URL;
+
+                Arkitektonika arkitektonika = Arkitektonika.builder().withUrl(arkUrl).build();
+                final CompletableFuture<Schematic> download = arkitektonika.download(id);
+
+                Schematic schem = download.join();
+
+                in = new ByteArrayInputStream(schem.getContent());
+
+                URL webUrl = new URL(arkUrl);
                 format = ClipboardFormats.findByAlias(formatName);
-                URL url = new URL(webUrl, "uploads/" + uuid + "." + format.getPrimaryFileExtension());
-                ReadableByteChannel byteChannel = Channels.newChannel(url.openStream());
-                in = Channels.newInputStream(byteChannel);
+                URL url = new URL(webUrl, "download/" + id);
                 uri = url.toURI();
             } else {
                 File saveDir = worldEdit.getWorkingDirectoryPath(config.saveDir).toFile();

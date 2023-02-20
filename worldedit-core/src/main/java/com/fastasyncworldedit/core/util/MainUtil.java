@@ -13,6 +13,8 @@ import com.fastasyncworldedit.core.util.task.RunnableVal;
 import com.fastasyncworldedit.core.util.task.RunnableVal2;
 import com.github.luben.zstd.ZstdInputStream;
 import com.github.luben.zstd.ZstdOutputStream;
+import com.intellectualsites.arkitektonika.Arkitektonika;
+import com.intellectualsites.arkitektonika.SchematicKeys;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.DoubleTag;
 import com.sk89q.jnbt.IntTag;
@@ -75,6 +77,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -354,50 +357,15 @@ public class MainUtil {
         }
         final URL url;
         try {
-            url = new URL(urlStr + "?key=" + uuid + "&type=" + "" + extension);
-            String boundary = Long.toHexString(System.currentTimeMillis());
-            URLConnection con = new URL(website).openConnection();
-            con.setDoOutput(true);
-            con.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
-            try (OutputStream output = con.getOutputStream(); PrintWriter writer = new PrintWriter(new OutputStreamWriter(
-                    output,
-                    StandardCharsets.UTF_8
-            ), true)) {
-                String crlf = "\r\n";
-                writer.append("--").append(boundary).append(crlf);
-                writer.append("Content-Disposition: form-data; name=\"param\"").append(crlf);
-                writer.append("Content-Type: text/plain; charset=").append(StandardCharsets.UTF_8.displayName()).append(crlf);
-                String param = "value";
-                writer.append(crlf).append(param).append(crlf).flush();
-                writer.append("--").append(boundary).append(crlf);
-                writer.append("Content-Disposition: form-data; name=\"schematicFile\"; filename=\"").append(filename).append(String.valueOf('"'))
-                        .append(crlf);
-                writer.append("Content-Type: ").append(URLConnection.guessContentTypeFromName(filename)).append(crlf);
-                writer.append("Content-Transfer-Encoding: binary").append(crlf);
-                writer.append(crlf).flush();
-                OutputStream nonClosable = new AbstractDelegateOutputStream(new BufferedOutputStream(output)) {
-                    @Override
-                    public void close() {
-                    } // Don't close
-                };
-                writeTask.value = nonClosable;
-                writeTask.run();
-                nonClosable.flush();
-                writer.append(crlf).flush();
-                writer.append("--").append(boundary).append("--").append(crlf).flush();
-            }
-            int responseCode = ((HttpURLConnection) con).getResponseCode();
-            String content;
-            try (Scanner scanner = new Scanner(con.getInputStream()).useDelimiter("\\A")) {
-                content = scanner.next().trim();
-            }
-            if (!content.startsWith("<")) {
-                LOGGER.info(content);
-            }
-            if (responseCode == 200) {
-                return url;
-            }
-            return null;
+            Arkitektonika arkitektonika = Arkitektonika.builder().withUrl(Settings.settings().WEB.URL).build();
+
+            File tmpFile = new File(System.getProperty("java.io.tmpdir") + "/.tmp");
+            writeTask.value = new FileOutputStream(tmpFile);
+            writeTask.run();
+            final CompletableFuture<SchematicKeys> upload = arkitektonika.upload(tmpFile);
+
+            SchematicKeys keys = upload.join();
+            return new URL(Settings.settings().WEB.URL + "download/" + keys.getAccessKey());
         } catch (IOException e) {
             e.printStackTrace();
             return null;
