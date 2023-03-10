@@ -14,7 +14,7 @@ residence = "4.5._13.1"
 towny = "0.98.4.18"
 
 # Third party
-bstats = "3.0.0"
+bstats = "3.0.1"
 sparsebitset = "1.2"
 parallelgzip = "1.0.5"
 adventure = "4.9.3"
@@ -41,7 +41,7 @@ piston = "0.5.7"
 mockito = "5.1.1"
 
 # Gradle plugins
-pluginyml = "0.5.2"
+pluginyml = "0.5.3"
 
 [libraries]
 # Minecraft expectations
